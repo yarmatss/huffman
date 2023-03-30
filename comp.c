@@ -2,8 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-int n = 0;
-
 typedef struct Node
 {
         char ch;
@@ -12,12 +10,12 @@ typedef struct Node
         struct Node *right;
 } Node;
 
-void free_array(Node **a, int n)
+typedef struct Heap
 {
-        for (int i = 0; i < n; ++i)
-                free(a[i]);
-        free(a);
-}
+        Node **array;
+        int size;     // current size of heap
+        int capacity; // maximum capacity
+} minHeap;
 
 Node *create_node(char ch, int fr, Node *left, Node *right)
 {
@@ -29,68 +27,158 @@ Node *create_node(char ch, int fr, Node *left, Node *right)
         return new_node;
 }
 
-void swap(Node **a, Node **b)
+int parent(int i) // i - index of array
 {
-        Node *tmp = *a;
-        *a = *b;
-        *b = tmp;
+        return (i - 1) / 2;
 }
 
-void heapify(Node **a, int n, int i)
+int left_child(int i)
 {
+        return (2 * i + 1);
+}
+
+int right_child(int i)
+{
+        return (2 * i + 2);
+}
+
+Node *get_min(minHeap *heap)
+{
+        return heap->array[0];
+}
+
+minHeap *create_min_heap(int capacity)
+{
+        minHeap *heap = malloc(sizeof(*heap));
+        heap->array = malloc(sizeof(Node *) * capacity);
+        heap->capacity = capacity;
+        heap->size = 0;
+        return heap;
+}
+
+void swap(Node **elem1, Node **elem2)
+{
+        Node *tmp = *elem1;
+        *elem1 = *elem2;
+        *elem2 = tmp;
+}
+
+minHeap *insert(minHeap *heap, char ch, int freq, Node *left, Node *right)
+{
+        if (heap->capacity == heap->size)
+        {
+                fprintf(stderr, "Error with num of elements\n");
+                exit(1);
+        }
+
+        heap->size++;
+        heap->array[heap->size - 1] = create_node(ch, freq, left, right);
+
+        int cur = heap->size - 1; // current
+        while (cur > 0 && heap->array[parent(cur)]->freq > heap->array[cur]->freq)
+        {
+                // потом свап написать всесто этого говна
+                swap(&heap->array[parent(cur)], &heap->array[cur]);
+                /*Node *tmp = heap->array[parent(cur)] ;
+                heap->array[parent(cur)] = heap->array[cur];
+                heap->array[cur] = tmp;*/
+                cur = parent(cur); // update current index
+        }
+        return heap;
+}
+
+minHeap *heapify(minHeap *heap, int i)
+{ // i - index
+        if (heap->size <= 1)
+        {
+                return heap;
+        }
+        int left = left_child(i);
+        int right = right_child(i);
         int min = i;
-        int l = 2 * i + 1;
-        int r = 2 * i + 2;
-        if (l < n && a[l] < a[min])
-                min = l;
-        if (r < n && a[r] < a[min])
-                min = r;
+        if (left < heap->size && heap->array[left]->freq < heap->array[i]->freq)
+                min = left;
+        if (right < heap->size && heap->array[right]->freq < heap->array[min]->freq)
+                min = right;
 
         if (min != i)
         {
-                swap(&a[i], &a[min]);
-                heapify(a, n, min);
+                swap(&heap->array[i], &heap->array[min]);
+                /*Node *tmp = heap->array[i];
+                heap->array[i] = heap->array[min];
+                heap->array[min] = tmp;*/
+                heap = heapify(heap, min);
         }
+
+        return heap;
 }
 
-void heap_sort(Node **a, int n)
-{
-        // Build heap (rearrange array)
-        for (int i = n / 2 - 1; i >= 0; i--)
-                heapify(a, n, i);
 
-        for (int i = n - 1; i >= 0; i--)
+minHeap *delete(minHeap *heap)
+{
+        if (heap == NULL || heap->size == 0)
         {
-                // Move current root to end
-                swap(&a[0], &a[i]);
-
-                // call min heapify on the reduced heap
-                heapify(a, i, 0);
+                return heap;
         }
+
+        int size = heap->size;
+        //Node *last_element = heap->array[size - 1];
+        //heap->array[0] = last_element;
+        swap( &(heap->array[0]) , &(heap->array[size-1]) );
+        heap->size--;
+        size--;
+        heap = heapify(heap, 0);
+        return heap;
 }
 
-void insert(Node **a, char ch, int freq, Node *left, Node *right)
+void free_heap(minHeap *heap)
 {
-        a[n++] = create_node( ch, freq, left, right );
-        heap_sort( a, n );
+        if (heap == NULL)
+                return;
+        free(heap->array);
+        free(heap);
 }
 
-void print_array(Node **a, int n)
+void print_heap(minHeap *heap)
 {
-        for (int i = 0; i < n; ++i)
-                printf("%c -> %d\n", a[i]->ch, a[i]->freq);
+        printf("min heap: \n");
+        for (int i = 0; i < heap->size; i++)
+                printf("%c - %d\n", heap->array[i]->ch, heap->array[i]->freq);
 }
 
-void delete(Node **a, int v)
+Node *copy(Node **elem)
 {
-        swap(&a[v], &a[n - 1]);
-        --n;
-        heap_sort(a, n);
+        return *elem;
 }
 
-Node *copy(Node **a)
+Node *create_tree(minHeap *heap )
 {
-        return *a;
+        while ( heap->size != 1)
+        {
+                Node *a = get_min(heap);
+                printf( "%c - %d -\n" , a->ch , a->freq);
+                delete(heap);
+                
+                Node *b = get_min(heap);
+                delete(heap);
+               
+                insert(heap , '\0' , a->freq + b->freq , a , b );
+                printf( "---------\n");
+        }
+        return heap->array[0];
+}
+
+void print_tree( Node *root ) {
+        if( root == NULL ) {
+                printf("----empty----\n");
+                return;
+        }
+        printf("symbol - %c , value - %d\n ", root->ch , root->freq);
+        printf("left:\n");
+        print_tree(root->left);
+        printf("right:\n");
+        print_tree(root->right);
+        printf("done\n");
 }
 
 int main(int argc, char **argv)
@@ -112,29 +200,22 @@ int main(int argc, char **argv)
                         leaves_count++;
         }
 
-        Node **array = malloc(sizeof(*array) * ( 2 * leaves_count - 1 ) );
+        minHeap *heap = create_min_heap(2 * leaves_count - 1);
 
         for (int i = 0; i < 256; i++)
                 if (count[i] != 0)
-                        insert(array, (char)i, count[i], NULL, NULL);
+                        insert(heap, (char)i, count[i], NULL, NULL);
 
-        insert(array, 'y', 9, NULL, NULL);
+        print_heap(heap);
 
-        print_array(array, n);
-        printf("---------------------\n");
 
-        /*while( n > 1 )
-        {
-                int temp = array[0]->freq + array[1]->freq;
-                Node *copyA = copy( &array[1] ), *copyB = copy( &array[0] );
-                delete( array, n - 1 );
-                delete( array, n - 1 );
-                insert( array, 0, temp, copyA, copyB );
-                print_array( array, n );
-                printf( "---------------------\n" );
-        }*/
+        Node *root = create_tree(heap);
 
-        free_array(array, leaves_count);
+        print_tree(root);
+        
+
+        free_heap(heap);
         fclose(in);
+
         return 0;
 }
