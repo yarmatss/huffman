@@ -87,6 +87,14 @@ minHeap *insert(minHeap *heap, char ch, int freq, Node *left, Node *right)
         return heap;
 }
 
+int code[256];
+
+void wyzerowac()
+{
+        for( int i = 0; i < 256; ++i )
+                code[i] = '\0';
+}
+
 minHeap *heapify(minHeap *heap, int i)
 { // i - index
         if (heap->size <= 1)
@@ -113,7 +121,6 @@ minHeap *heapify(minHeap *heap, int i)
         return heap;
 }
 
-
 minHeap *delete(minHeap *heap)
 {
         if (heap == NULL || heap->size == 0)
@@ -122,9 +129,9 @@ minHeap *delete(minHeap *heap)
         }
 
         int size = heap->size;
-        //Node *last_element = heap->array[size - 1];
-        //heap->array[0] = last_element;
-        swap( &(heap->array[0]) , &(heap->array[size-1]) );
+        // Node *last_element = heap->array[size - 1];
+        // heap->array[0] = last_element;
+        swap(&(heap->array[0]), &(heap->array[size - 1]));
         heap->size--;
         size--;
         heap = heapify(heap, 0);
@@ -151,34 +158,56 @@ Node *copy(Node **elem)
         return *elem;
 }
 
-Node *create_tree(minHeap *heap )
+Node *create_tree(minHeap *heap)
 {
-        while ( heap->size != 1)
+        while (heap->size != 1)
         {
                 Node *a = get_min(heap);
-                printf( "%c - %d -\n" , a->ch , a->freq);
-                delete(heap);
-                
+                delete (heap);
                 Node *b = get_min(heap);
-                delete(heap);
-               
-                insert(heap , '\0' , a->freq + b->freq , a , b );
-                printf( "---------\n");
+                delete (heap);
+                insert(heap, '\0', a->freq + b->freq, a, b);
         }
         return heap->array[0];
 }
 
-void print_tree( Node *root ) {
-        if( root == NULL ) {
+void print_tree(Node *root)
+{
+        if (root == NULL)
+        {
                 printf("----empty----\n");
                 return;
         }
-        printf("symbol - %c , value - %d\n ", root->ch , root->freq);
+        printf("symbol - %c , value - %d\n ", root->ch, root->freq);
         printf("left:\n");
         print_tree(root->left);
         printf("right:\n");
         print_tree(root->right);
         printf("done\n");
+}
+
+void get_code( Node *root, int cur )
+{
+        if( root->left )
+        {
+                code[cur] = 0;
+                get_code( root->left, cur + 1 );
+        }
+
+        if( root->right )
+        {
+                code[cur] = 1;
+                get_code( root->right, cur + 1 );
+        }
+
+        if( !(root->left) && !(root->right) )
+        {
+                printf( "%c -> ", root->ch );
+                for( int i = 0; i < cur; ++i )
+                        printf( "%d", code[i] );
+                printf( "\n" );
+                //wyzerowac();
+        }
 }
 
 int main(int argc, char **argv)
@@ -206,13 +235,14 @@ int main(int argc, char **argv)
                 if (count[i] != 0)
                         insert(heap, (char)i, count[i], NULL, NULL);
 
+        printf( "Heap: \n");
         print_heap(heap);
-
 
         Node *root = create_tree(heap);
 
-        print_tree(root);
-        
+        // print_tree(root);
+        printf( "\n\n\nCodes: \n" );
+        get_code( root, 0 );
 
         free_heap(heap);
         fclose(in);
