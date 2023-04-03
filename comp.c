@@ -17,6 +17,12 @@ typedef struct Heap
         int capacity; // maximum capacity
 } minHeap;
 
+typedef struct Code {
+        char ch;
+        char code[256];
+        int freq; // dla obliczenia
+} Code;
+
 Node *create_node(char ch, int fr, Node *left, Node *right)
 {
         Node *new_node = malloc(sizeof(*new_node));
@@ -87,13 +93,7 @@ minHeap *insert(minHeap *heap, char ch, int freq, Node *left, Node *right)
         return heap;
 }
 
-int code[256];
 
-void wyzerowac()
-{
-        for( int i = 0; i < 256; ++i )
-                code[i] = '\0';
-}
 
 minHeap *heapify(minHeap *heap, int i)
 { // i - index
@@ -121,6 +121,7 @@ minHeap *heapify(minHeap *heap, int i)
         return heap;
 }
 
+
 minHeap *delete(minHeap *heap)
 {
         if (heap == NULL || heap->size == 0)
@@ -129,9 +130,9 @@ minHeap *delete(minHeap *heap)
         }
 
         int size = heap->size;
-        // Node *last_element = heap->array[size - 1];
-        // heap->array[0] = last_element;
-        swap(&(heap->array[0]), &(heap->array[size - 1]));
+        //Node *last_element = heap->array[size - 1];
+        //heap->array[0] = last_element;
+        swap( &(heap->array[0]) , &(heap->array[size-1]) );
         heap->size--;
         size--;
         heap = heapify(heap, 0);
@@ -158,27 +159,29 @@ Node *copy(Node **elem)
         return *elem;
 }
 
-Node *create_tree(minHeap *heap)
+Node *create_tree(minHeap *heap )
 {
-        while (heap->size != 1)
+        while ( heap->size != 1)
         {
                 Node *a = get_min(heap);
-                delete (heap);
+                printf( "%c - %d -\n" , a->ch , a->freq);
+                delete(heap);
+                
                 Node *b = get_min(heap);
-                delete (heap);
-                insert(heap, '\0', a->freq + b->freq, a, b);
+                delete(heap);
+               
+                insert(heap , '\0' , a->freq + b->freq , a , b );
+                printf( "---------\n");
         }
         return heap->array[0];
 }
 
-void print_tree(Node *root)
-{
-        if (root == NULL)
-        {
+void print_tree( Node *root ) {
+        if( root == NULL ) {
                 printf("----empty----\n");
                 return;
         }
-        printf("symbol - %c , value - %d\n ", root->ch, root->freq);
+        printf("symbol - %c , value - %d\n ", root->ch , root->freq);
         printf("left:\n");
         print_tree(root->left);
         printf("right:\n");
@@ -186,27 +189,33 @@ void print_tree(Node *root)
         printf("done\n");
 }
 
-void get_code( Node *root, int cur )
-{
+char code_g[256];  // code_getcode 
+int ic = 0; //передвигаться по массиву структру с кодами
+
+void get_code( Node *root , Code *codes , int cur ) {
         if( root->left )
         {
-                code[cur] = 0;
-                get_code( root->left, cur + 1 );
+                code_g[cur] = '0';
+                get_code( root->left, codes , cur + 1 );
         }
 
         if( root->right )
         {
-                code[cur] = 1;
-                get_code( root->right, cur + 1 );
+                code_g[cur] = '1';
+                get_code( root->right, codes , cur + 1 );
         }
 
         if( !(root->left) && !(root->right) )
         {
                 printf( "%c -> ", root->ch );
+                codes[ic].ch = root->ch;
+                codes[ic].freq = root->freq;
+                for( int i = 0; i < cur ; ++i )
+                        codes[ic].code[i] = code_g[i];
+                ic++;          
                 for( int i = 0; i < cur; ++i )
-                        printf( "%d", code[i] );
+                        printf( "%c", code_g[i] );
                 printf( "\n" );
-                //wyzerowac();
         }
 }
 
@@ -235,14 +244,24 @@ int main(int argc, char **argv)
                 if (count[i] != 0)
                         insert(heap, (char)i, count[i], NULL, NULL);
 
-        printf( "Heap: \n");
         print_heap(heap);
+
 
         Node *root = create_tree(heap);
 
-        // print_tree(root);
+       // print_tree(root);
+        
+        Code *codes = calloc( leaves_count , sizeof(Code) ); 
+        
         printf( "\n\n\nCodes: \n" );
-        get_code( root, 0 );
+        get_code( root, codes , 0 );
+        
+
+        printf("----------");
+        printf("\nstruct codes\n");
+        for( int i = 0 ; i < leaves_count ; i++ ) {
+                printf("%c - %s\n", codes[i].ch , codes[i].code );
+        }
 
         free_heap(heap);
         fclose(in);
