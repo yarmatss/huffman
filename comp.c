@@ -21,6 +21,7 @@ typedef struct Code {
         char ch;
         char code[256];
         int freq; // dla obliczenia
+        int length; // for bits operations 
 } Code;
 
 Node *create_node(char ch, int fr, Node *left, Node *right)
@@ -163,10 +164,12 @@ Node *create_tree(minHeap *heap )
 {
         while ( heap->size != 1)
         {
+
                 Node *a = get_min(heap);
                 printf( "%c - %d -\n" , a->ch , a->freq);
                 delete(heap);
                 
+
                 Node *b = get_min(heap);
                 delete(heap);
                
@@ -210,23 +213,80 @@ void get_code( Node *root , Code *codes , int cur ) {
                 printf( "%c -> ", root->ch );
                 codes[ic].ch = root->ch;
                 codes[ic].freq = root->freq;
-                for( int i = 0; i < cur ; ++i )
+                for( int i = 0; i < cur ; ++i ) {
                         codes[ic].code[i] = code_g[i];
+                        if( i+1 == cur )
+                                codes[ic].length = i+1;
+                } 
                 ic++;          
-                for( int i = 0; i < cur; ++i )
+                for( int i = 0; i < cur; ++i ) 
                         printf( "%c", code_g[i] );
+
                 printf( "\n" );
         }
 }
 
+
+
+//bits 
+// -o1
+
+int BITS_IN_USE( int leaves_count , Code *codes ) {
+        int n = 0;
+        for( int i = 0 ; i < leaves_count ; i++ ) 
+                n += (codes[i].freq) * codes[i].length ;
+        return n;
+}
+
+int BLOCK_CHAR_COUNT( int bits_in_use ) {
+        int n;
+        if( ( bits_in_use % 8 ) > 0 ) 
+                n = ( bits_in_use / 8 ) + 1;
+        else 
+                n = bits_in_use / 8 ; 
+        return n;
+}
+
+void show_buf_c( unsigned char *buf , int n , char mask) {
+        for( int i = 0 ; i < n ; i++ ) {
+                printf("buf[%d]: " , i );
+                for( int j = 7 ; j >= 0 ; j-- )
+                        printf("%d" , ( (buf[i]) >> j ) & mask );
+                printf("\n");        
+        }
+}
+
+
 int main(int argc, char **argv)
 {
+
+
         FILE *in = argc > 1 ? fopen(argv[1], "rb") : NULL;
+        FILE *out = argc > 2 ? fopen(argv[2], "wb") : NULL;
         if (in == NULL)
         {
                 fprintf(stderr, "Nie udało się odczytać pliku \"%s\"\n", argv[1]);
                 exit(1);
         }
+
+        if (out == NULL)
+        {
+                fprintf(stderr, "Nie udało sie stworzyć pliku \"%s\"\n", argv[2]);
+                exit(1);
+        }
+
+        int option;
+                if( strcmp( "-o1" , argv[3] ) == 0 )
+                        option = 1;
+                else if( strcmp( "-o2" , argv[3] ) == 0 )
+                        option = 2;
+                else if( strcmp( "-o3" , argv[3] ) == 0 )
+                        option = 3;
+                else {
+                        fprintf(stderr,"Bledna opcja, podaj opcji -help\n");
+                        exit(1);
+                }              
+
 
         int count[256] = {0};
 
@@ -244,7 +304,7 @@ int main(int argc, char **argv)
                 if (count[i] != 0)
                         insert(heap, (char)i, count[i], NULL, NULL);
 
-        print_heap(heap);
+        //print_heap(heap);
 
 
         Node *root = create_tree(heap);
@@ -260,9 +320,88 @@ int main(int argc, char **argv)
         printf("----------");
         printf("\nstruct codes\n");
         for( int i = 0 ; i < leaves_count ; i++ ) {
-                printf("%c - %s\n", codes[i].ch , codes[i].code );
+                printf("%c - %s (length - %d)\n", codes[i].ch , codes[i].code , codes[i].length );
         }
 
+
+        //now bits-----------------------------------------------------------------------------------------------------------------
+
+
+        int bits_in_use = BITS_IN_USE( leaves_count , codes );
+        printf( "bit in use - %d\n" , bits_in_use );      
+
+
+        if( option == 1 ) { // opcja 1 - block 8 bitów  
+
+        int block_char_count = BLOCK_CHAR_COUNT( bits_in_use );
+        printf("blocks count - %d\n", block_char_count );
+
+
+        unsigned char *buf = calloc( block_char_count , sizeof(char) ) ;  
+        if( buf == NULL ) {
+                fprintf( stderr , "Memory Error\n");
+                exit(1);
+        }
+        
+       
+        char mask_c = 0b1;
+       
+        printf("******** buf bits before *********\n");
+        show_buf_c( buf , block_char_count , mask_c );
+       
+        
+        //меняю биты на наши коды:
+
+         int buf_index = 0; // dla buffera 
+         int bit_position = 0; //dla peredvizenia po bitam 
+
+         fseek( in , 0L , SEEK_SET ) ; // что бы ещё раз прочитать файл
+         while ((c = fgetc(in)) != EOF)
+        {
+                for( int i = 0 ; i < leaves_count ; i++ )
+                        {
+                                if( (char) c == codes[i].ch ) {
+                                        //printf("--%c--\n", c );
+                                        for( int k = 0 ; k < codes[i].length ; k++ ) {
+                                                if( bit_position == 8 ) { // block zavershen
+                                                        buf_index ++ ;
+                                                        bit_position = 0;
+                                                        //printf("BUFF++\n");
+                                                } 
+
+
+                                                switch( codes[i].code[k] ) {
+                                                        case '1':
+                                                                //printf("JEDEN\n");
+                                                                buf[buf_index] = (buf[buf_index]) | ( mask_c << bit_position );
+                                                                bit_position++;
+                                                                //show_buf_c( buf , block_char_count , mask_c );
+                                                                break;
+
+                                                        case '0':
+                                                                //printf("ZERO\n");
+                                                                buf[buf_index] = (buf[buf_index]) & ~( mask_c << bit_position );
+                                                                bit_position++;
+                                                                //show_buf_c( buf , block_char_count , mask_c );
+                                                                break;
+                                                }
+                                        }
+                                }          
+                        }       
+
+        } 
+
+        
+        printf("******** buf bits after ********\n"); 
+        show_buf_c( buf , block_char_count , mask_c ); 
+
+        fwrite( &buf , sizeof(char) , block_char_count , out );
+
+        
+        free(buf);
+        }
+
+        free(codes);
         free_heap(heap);
         fclose(in);
 
