@@ -2,8 +2,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-char code_g[256]; // code_getcode
-int ic = 0;       // передвигаться по массиву структру с кодами
+char code_g[65536];
+int ic = 0;
 
 void get_code(Node *root, Code *codes, int cur)
 {
@@ -21,7 +21,6 @@ void get_code(Node *root, Code *codes, int cur)
 
     if (!(root->left) && !(root->right))
     {
-        printf("%c -> ", root->ch.c);
         codes[ic].ch = root->ch;
         codes[ic].freq = root->freq;
         for (int i = 0; i < cur; ++i)
@@ -31,10 +30,6 @@ void get_code(Node *root, Code *codes, int cur)
                 codes[ic].length = i + 1;
         }
         ic++;
-        for (int i = 0; i < cur; ++i)
-            printf("%c", code_g[i]);
-
-        printf("\n");
     }
 }
 
@@ -46,8 +41,7 @@ int BITS_IN_USE(int leaves_count, Code *codes)
     return n;
 }
 
-/////////
-void print_buf_o1(unsigned char *buf, int n, char mask)
+void print_buf_o1(char *buf, int n, char mask)
 {
     for (int i = 0; i < n; i++)
     {
@@ -58,7 +52,7 @@ void print_buf_o1(unsigned char *buf, int n, char mask)
     }
 }
 
-void print_buf_o2(unsigned short *buf, int n, char mask)
+void print_buf_o2(short *buf, int n, char mask)
 {
     for (int i = 0; i < n; i++)
     {
@@ -69,7 +63,7 @@ void print_buf_o2(unsigned short *buf, int n, char mask)
     }
 }
 
-void print_buf_o3(unsigned short *buf, int n, char mask)
+void print_buf_o3(short *buf, int n, char mask)
 {
     for (int i = 0; i < n; i++)
     {
@@ -112,7 +106,7 @@ void zapisz(FILE *in, FILE *out, int option, int bits_in_use, int leaves_count, 
         break;
     }
 
-    unsigned char *buf_o1 = calloc(block_count, sizeof *buf_o1);
+    char *buf_o1 = calloc(block_count, sizeof *buf_o1);
     if (buf_o1 == NULL)
     {
         fprintf(stderr, "Nie udało się stworzyć buforu\n");
@@ -135,92 +129,84 @@ void zapisz(FILE *in, FILE *out, int option, int bits_in_use, int leaves_count, 
 
     printf("blocks count - %d\n", block_count);
 
-    printf("******** buf bits before *********\n");
+    int c;
+    fseek(in, 0L, SEEK_SET);
     switch (option)
     {
     case 1:
-        print_buf_o1(buf_o1, block_count, 0b1);
-        break;
-    case 2:
-        print_buf_o2(buf_o2, block_count, 0b1);
-        break;
-    case 3:
-        print_buf_o3(buf_o3, block_count, 0b1);
-        break;
-    }
-
-    int c;
-    fseek(in, 0L, SEEK_SET);
-    while (fread( &c, sizeof( short), 1, in))
-    {
-        for (int i = 0; i < leaves_count; i++)
+        while (fread(&c, sizeof(char), 1, in))
         {
-            if ((short)c == codes[i].ch.s)
+            for (int i = 0; i < leaves_count; i++)
             {
-                for (int k = 0; k < codes[i].length; k++)
+                if ((char)c == codes[i].ch.c)
                 {
-                    if (bit_position == block_bits)
+                    for (int k = 0; k < codes[i].length; k++)
                     {
-                        buf_index++;
-                        bit_position = 0;
-                    }
-
-                    switch (codes[i].code[k])
-                    {
-                    case '1':
-                        switch (option)
+                        if (bit_position == block_bits)
                         {
-                        case 1:
+                            buf_index++;
+                            bit_position = 0;
+                        }
+
+                        switch (codes[i].code[k])
+                        {
+                        case '1':
                             buf_o1[buf_index] |= (0b1 << bit_position);
+                            bit_position++;
                             break;
-                        case 2:
-                            buf_o2[buf_index] |= (0b1 << bit_position);
-                            break;
-                        case 3:
-                            buf_o3[buf_index] |= (0b1 << bit_position);
-                            break;
-                        }
-                        bit_position++;
-                        break;
 
-                    case '0':
-                        switch (option)
-                        {
-                        case 1:
+                        case '0':
                             buf_o1[buf_index] &= ~(0b1 << bit_position);
-                            break;
-                        case 2:
-                            buf_o2[buf_index] &= ~(0b1 << bit_position);
-                            break;
-                        case 3:
-                            buf_o3[buf_index] &= ~(0b1 << bit_position);
+                            bit_position++;
                             break;
                         }
-
-                        bit_position++;
-                        break;
                     }
                 }
             }
         }
-    }
-
-    printf("******** buf bits after ********\n");
-    switch (option)
-    {
-    case 1:
+        printf("******** buf bits after ********\n");
         print_buf_o1(buf_o1, block_count, 0b1);
         fwrite(buf_o1, sizeof(char), block_count, out);
         break;
+
+    case 3:
     case 2:
+        while (fread(&c, sizeof(short), 1, in))
+        {
+            for (int i = 0; i < leaves_count; i++)
+            {
+                if ((short)c == codes[i].ch.s)
+                {
+                    for (int k = 0; k < codes[i].length; k++)
+                    {
+                        if (bit_position == block_bits)
+                        {
+                            buf_index++;
+                            bit_position = 0;
+                        }
+
+                        switch (codes[i].code[k])
+                        {
+                        case '1':
+                            buf_o2[buf_index] |= (0b1 << bit_position);
+                            bit_position++;
+                            break;
+
+                        case '0':
+                            buf_o2[buf_index] &= ~(0b1 << bit_position);
+                            bit_position++;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        printf("******** buf bits after ********\n");
         print_buf_o2(buf_o2, block_count, 0b1);
         fwrite(buf_o2, sizeof(char), block_count, out);
         break;
-    case 3:
-        print_buf_o3(buf_o3, block_count, 0b1);
-        fwrite(buf_o3, sizeof(char), block_count, out);
-        break;
     }
+
     free(buf_o1);
     free(buf_o2);
     free(buf_o3);

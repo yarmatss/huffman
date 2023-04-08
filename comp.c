@@ -45,7 +45,7 @@ int main(int argc, char **argv)
 
         int count[MAX2] = {0};
 
-        int c, leaves_count = 0;
+        int c = 0, leaves_count = 0;
         switch (option)
         {
         case 1:
@@ -57,6 +57,14 @@ int main(int argc, char **argv)
                 }
                 break;
         case 2:
+                while (fread(&c, sizeof(short), 1, in))
+                {
+                        count[c]++;
+                        if (count[c] == 1)
+                                leaves_count++;
+                }
+                break;
+        case 3:
                 while (fread(&c, sizeof(short), 1, in))
                 {
                         count[c]++;
@@ -96,17 +104,24 @@ int main(int argc, char **argv)
                                 insert(heap, tmp, count[i], NULL, NULL);
                         }
                 break;
+        case 3:
+                for (int i = 0; i < MAX3; i++)
+                        if (count[i] != 0)
+                        {
+                                Character tmp;
+                                tmp.s = (short) i;
+                                insert(heap, tmp, count[i], NULL, NULL);
+                        }
+                break;
         }
 
         Node *root = create_tree(heap);
 
         Code *codes = calloc(leaves_count, sizeof(Code));
 
-        printf("Codes: \n");
         get_code(root, codes, 0);
 
-        printf("----------");
-        printf("\nstruct codes\n");
+        printf("struct codes:\n");
         switch(option)
         {
         case 1:
@@ -116,6 +131,12 @@ int main(int argc, char **argv)
                 }
                 break;
         case 2:
+                for (int i = 0; i < leaves_count; i++)
+                {
+                        printf("%d - %s (length - %d)\n", codes[i].ch.s, codes[i].code, codes[i].length);
+                }
+                break;
+        case 3:
                 for (int i = 0; i < leaves_count; i++)
                 {
                         printf("%d - %s (length - %d)\n", codes[i].ch.s, codes[i].code, codes[i].length);
