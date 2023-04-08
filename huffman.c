@@ -68,7 +68,7 @@ void print_buf_o3(short *buf, int n, char mask)
     for (int i = 0; i < n; i++)
     {
         printf("buf[%d]: ", i);
-        for (int j = 11; j >= 0; j--)
+        for (int j = 15; j >= 0; j--)
             printf("%d", ((buf[i]) >> j) & mask);
         printf("\n");
     }
@@ -169,8 +169,7 @@ void zapisz(FILE *in, FILE *out, int option, int bits_in_use, int leaves_count, 
         fwrite(buf_o1, sizeof(char), block_count, out);
         break;
 
-    case 3:
-    case 2:
+        case 2:
         while (fread(&c, sizeof(short), 1, in))
         {
             for (int i = 0; i < leaves_count; i++)
@@ -203,7 +202,43 @@ void zapisz(FILE *in, FILE *out, int option, int bits_in_use, int leaves_count, 
         }
         printf("******** buf bits after ********\n");
         print_buf_o2(buf_o2, block_count, 0b1);
-        fwrite(buf_o2, sizeof(char), block_count, out);
+        fwrite(buf_o2, sizeof(short), block_count, out);
+        break;
+
+        case 3:
+        while (fread(&c, sizeof(short), 1, in))
+        {
+            for (int i = 0; i < leaves_count; i++)
+            {
+                if ((short)c == codes[i].ch.s)
+                {
+                    for (int k = 0; k < codes[i].length; k++)
+                    {
+                        if (bit_position == block_bits)
+                        {
+                            buf_index++;
+                            bit_position = 0;
+                        }
+
+                        switch (codes[i].code[k])
+                        {
+                        case '1':
+                            buf_o3[buf_index] |= (0b1 << bit_position);
+                            bit_position++;
+                            break;
+
+                        case '0':
+                            buf_o3[buf_index] &= ~(0b1 << bit_position);
+                            bit_position++;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        printf("******** buf bits after ********\n");
+        print_buf_o3(buf_o3, block_count, 0b1);
+        fwrite(buf_o3, sizeof(short), block_count, out);
         break;
     }
 
