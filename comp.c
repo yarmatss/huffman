@@ -435,7 +435,7 @@ int main(int argc, char **argv)
                 printf("******** buf bits after ********\n");
                 print_buf_o1(buf, block_o1_count, mask_o1);
 
-                fwrite(&buf, sizeof(char), block_o1_count, out);
+                fwrite(buf, sizeof(char), block_o1_count, out);
 
                 free(buf);
         }
@@ -504,7 +504,7 @@ int main(int argc, char **argv)
                 printf("******** buf bits after ********\n");
                 print_buf_o2(buf, block_o2_count, mask_o2);
 
-                fwrite(&buf, sizeof(short), block_o2_count, out);
+                fwrite(buf, sizeof(short), block_o2_count, out);
                 free(buf);
         }
 
