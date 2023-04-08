@@ -288,10 +288,32 @@ void print_buf_o2(unsigned short *buf, int n, char mask)
         }
 }
 
+void print_buf_o3(unsigned short *buf, int n, char mask)
+{
+        for (int i = 0; i < n; i++)
+        {
+                printf("buf[%d]: ", i);
+                for (int j = 11; j >= 0; j--)
+                        printf("%d", ((buf[i]) >> j) & mask);
+                printf("\n");
+        }
+}
+
 void free_heap(minHeap *heap)
 {
         free(heap->array);
         free(heap);
+}
+
+
+
+int BLOCK_COUNT( int block_bits , int bits_in_use ) {  
+        int n;
+        if ((bits_in_use % block_bits) > 0)
+                n = (bits_in_use / block_bits) + 1;
+        else
+                n = bits_in_use / block_bits;
+        return n;
 }
 
 int main(int argc, char **argv)
@@ -366,15 +388,18 @@ int main(int argc, char **argv)
                 printf("%c - %s (length - %d)\n", codes[i].ch, codes[i].code, codes[i].length);
         }
 
-        // now bits-----------------------------------------------------------------------------------------------------------------
+        // now bits----------------------------------------------------------------------------------------------------------------
+        
 
         int bits_in_use = BITS_IN_USE(leaves_count, codes);
         printf("bit in use - %d\n", bits_in_use);
 
+        int block_bits; 
+
         if (option == 1)
         { // opcja 1 - block 8 bitów
-
-                int block_o1_count = BLOCK_O1_COUNT(bits_in_use);
+                block_bits = 8;
+                int block_o1_count = BLOCK_COUNT( block_bits , bits_in_use);
                 printf("blocks count - %d\n", block_o1_count);
 
                 unsigned char *buf = calloc(block_o1_count, sizeof(char));
@@ -404,7 +429,7 @@ int main(int argc, char **argv)
                                         // printf("--%c--\n", c );
                                         for (int k = 0; k < codes[i].length; k++)
                                         {
-                                                if (bit_position == 8)
+                                                if (bit_position == block_bits)
                                                 { // block zavershen
                                                         buf_index++;
                                                         bit_position = 0;
@@ -442,8 +467,8 @@ int main(int argc, char **argv)
 
         if (option == 2)
         { // opcja 2 - block 16 bitów
-
-                int block_o2_count = BLOCK_O2_COUNT(bits_in_use);
+                block_bits = 16;
+                int block_o2_count = BLOCK_COUNT( block_bits ,bits_in_use );
                 printf("blocks count - %d\n", block_o2_count);
 
                 unsigned short *buf = calloc(block_o2_count, sizeof(unsigned short));
@@ -473,7 +498,7 @@ int main(int argc, char **argv)
                                         // printf("--%c--\n", c );
                                         for (int k = 0; k < codes[i].length; k++)
                                         {
-                                                if (bit_position == 16)
+                                                if (bit_position == block_bits)
                                                 { // block zavershen
                                                         buf_index++;
                                                         bit_position = 0;
@@ -508,6 +533,75 @@ int main(int argc, char **argv)
                 free(buf);
         }
 
+        if (option == 3)
+        { // opcja 3 - block 12 bitów
+                block_bits = 12;
+                int block_o3_count = BLOCK_COUNT( block_bits , bits_in_use);
+                printf("blocks count - %d\n", block_o3_count);
+
+                unsigned short *buf = calloc(block_o3_count, sizeof(short) );
+                if (buf == NULL)
+                {
+                        fprintf(stderr, "Memory Error\n");
+                        exit(1);
+                }
+
+                short mask_o3 = 0b1;
+
+                printf("******** buf bits before *********\n");
+                print_buf_o3(buf, block_o3_count, mask_o3);
+
+                // меняю биты на наши коды:
+
+                int buf_index = 0;    // dla buffera
+                int bit_position = 0; // dla peredvizenia po bitam
+
+                fseek(in, 0L, SEEK_SET); // что бы ещё раз прочитать файл
+                while ((c = fgetc(in)) != EOF)
+                {
+                        for (int i = 0; i < leaves_count; i++)
+                        {
+                                if ((char)c == codes[i].ch)
+                                {
+                                        // printf("--%c--\n", c );
+                                        for (int k = 0; k < codes[i].length; k++)
+                                        {
+                                                if (bit_position == block_bits)
+                                                { // block zavershen
+                                                        buf_index++;
+                                                        bit_position = 0;
+                                                        // printf("BUFF++\n");
+                                                }
+
+                                                switch (codes[i].code[k])
+                                                {
+                                                case '1':
+                                                        // printf("JEDEN\n");
+                                                        buf[buf_index] = (buf[buf_index]) | (mask_o3 << bit_position);
+                                                        bit_position++;
+                                                        // show_buf_c( buf , block_char_count , mask_c );
+                                                        break;
+
+                                                case '0':
+                                                        // printf("ZERO\n");
+                                                        buf[buf_index] = (buf[buf_index]) & ~(mask_o3 << bit_position);
+                                                        bit_position++;
+                                                        // show_buf_c( buf , block_char_count , mask_c );
+                                                        break;
+                                                }
+                                        }
+                                }
+                        }
+                }
+
+                printf("******** buf bits after ********\n");
+                print_buf_o3(buf, block_o3_count, mask_o3);
+
+                fwrite(buf, sizeof(short), block_o3_count, out);
+
+                free(buf);
+        }
+
         free(codes);
         free_tree(root);
         free(root);
@@ -515,4 +609,5 @@ int main(int argc, char **argv)
         fclose(in);
         fclose(out);
         return 0;
+
 }
