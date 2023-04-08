@@ -1,10 +1,16 @@
 .PHONY: clean valgrind
 
-comp: comp.o
-	cc -o comp comp.o
+comp: comp.o minheap.o huffman.o
+	cc -o comp comp.o minheap.o huffman.o
 
 comp.o: comp.c
 	cc -c comp.c
+
+minheap.o: minheap.c
+	cc -c minheap.c
+
+huffman.o: huffman.c
+	cc -c huffman.c
 
 clean:
 	-rm *.o comp *.bin
