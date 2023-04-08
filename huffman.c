@@ -119,7 +119,7 @@ void zapisz(FILE *in, FILE *out, int option, int bits_in_use, int leaves_count, 
         exit(1);
     }
 
-    unsigned short *buf_o2 = calloc(block_count, sizeof *buf_o2);
+    short *buf_o2 = calloc(block_count, sizeof *buf_o2);
     if (buf_o2 == NULL)
     {
         fprintf(stderr, "Nie udało się stworzyć buforu\n");
@@ -151,11 +151,11 @@ void zapisz(FILE *in, FILE *out, int option, int bits_in_use, int leaves_count, 
 
     int c;
     fseek(in, 0L, SEEK_SET);
-    while ((c = fgetc(in)) != EOF)
+    while (fread( &c, sizeof( short), 1, in))
     {
         for (int i = 0; i < leaves_count; i++)
         {
-            if ((char)c == codes[i].ch.c)
+            if ((short)c == codes[i].ch.s)
             {
                 for (int k = 0; k < codes[i].length; k++)
                 {

@@ -76,13 +76,27 @@ int main(int argc, char **argv)
 
         minHeap *heap = create_min_heap(2 * leaves_count - 1);
 
-        for (int i = 0; i < 256; i++)
-                if (count[i] != 0)
-                {
-                        Character tmp;
-                        tmp.c = (char) i;
-                        insert(heap, tmp, count[i], NULL, NULL);
-                }
+        switch(option)
+        {
+        case 1:
+                for (int i = 0; i < MAX1; i++)
+                        if (count[i] != 0)
+                        {
+                                Character tmp;
+                                tmp.c = (char) i;
+                                insert(heap, tmp, count[i], NULL, NULL);
+                        }
+                break;
+        case 2:
+                for (int i = 0; i < MAX2; i++)
+                        if (count[i] != 0)
+                        {
+                                Character tmp;
+                                tmp.s = (short) i;
+                                insert(heap, tmp, count[i], NULL, NULL);
+                        }
+                break;
+        }
 
         Node *root = create_tree(heap);
 
@@ -93,9 +107,20 @@ int main(int argc, char **argv)
 
         printf("----------");
         printf("\nstruct codes\n");
-        for (int i = 0; i < leaves_count; i++)
+        switch(option)
         {
-                printf("%c - %s (length - %d)\n", codes[i].ch.c, codes[i].code, codes[i].length);
+        case 1:
+                for (int i = 0; i < leaves_count; i++)
+                {
+                        printf("%c - %s (length - %d)\n", codes[i].ch.c, codes[i].code, codes[i].length);
+                }
+                break;
+        case 2:
+                for (int i = 0; i < leaves_count; i++)
+                {
+                        printf("%d - %s (length - %d)\n", codes[i].ch.s, codes[i].code, codes[i].length);
+                }
+                break;
         }
 
         int bits_in_use = BITS_IN_USE(leaves_count, codes);
