@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #include "minheap.h"
 #include "huffman.h"
 
@@ -21,16 +22,21 @@ int main(int argc, char **argv)
                 exit(1);
         }
 
-        int option;
-        if (strcmp("-o1", argv[3]) == 0)
-                option = 1;
-        else if (strcmp("-o2", argv[3]) == 0)
-                option = 2;
-        else if (strcmp("-o3", argv[3]) == 0)
-                option = 3;
-        else
+        int option = 0, opt;
+
+        while( (opt = getopt( argc, argv, "o:")) != -1)
         {
-                fprintf(stderr, "Bledna opcja, podaj opcji -help\n");
+                switch(opt)
+                {
+                        case 'o':
+                                option = atoi(optarg);
+                                break;
+                }
+        }
+
+        if( option < 1 || option > 3 )
+        {
+                fprintf(stderr, "Błędny lub niepodany stopień kompresji!\nUżyj -h dla wyświetlenia menu help\n");
                 exit(1);
         }
 
