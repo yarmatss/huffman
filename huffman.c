@@ -21,7 +21,7 @@ void get_code(Node *root, Code *codes, int cur)
 
     if (!(root->left) && !(root->right))
     {
-        printf("%c -> ", root->ch);
+        printf("%c -> ", root->ch.c);
         codes[ic].ch = root->ch;
         codes[ic].freq = root->freq;
         for (int i = 0; i < cur; ++i)
@@ -155,7 +155,7 @@ void zapisz(FILE *in, FILE *out, int option, int bits_in_use, int leaves_count, 
     {
         for (int i = 0; i < leaves_count; i++)
         {
-            if ((char)c == codes[i].ch)
+            if ((char)c == codes[i].ch.c)
             {
                 for (int k = 0; k < codes[i].length; k++)
                 {

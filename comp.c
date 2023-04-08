@@ -5,9 +5,12 @@
 #include "minheap.h"
 #include "huffman.h"
 
+#define MAX1 256
+#define MAX2 65536
+#define MAX3 4096
+
 int main(int argc, char **argv)
 {
-
         FILE *in = argc > 1 ? fopen(argv[1], "rb") : NULL;
         FILE *out = argc > 2 ? fopen(argv[2], "wb") : NULL;
         if (in == NULL)
@@ -40,14 +43,27 @@ int main(int argc, char **argv)
                 exit(1);
         }
 
-        int count[256] = {0};
+        int count[MAX2] = {0};
 
         int c, leaves_count = 0;
-        while ((c = fgetc(in)) != EOF)
+        switch (option)
         {
-                count[c]++;
-                if (count[c] == 1)
-                        leaves_count++;
+        case 1:
+                while (fread(&c, sizeof(char), 1, in))
+                {
+                        count[c]++;
+                        if (count[c] == 1)
+                                leaves_count++;
+                }
+                break;
+        case 2:
+                while (fread(&c, sizeof(short), 1, in))
+                {
+                        count[c]++;
+                        if (count[c] == 1)
+                                leaves_count++;
+                }
+                break;
         }
 
         if (leaves_count == 0)
@@ -62,7 +78,11 @@ int main(int argc, char **argv)
 
         for (int i = 0; i < 256; i++)
                 if (count[i] != 0)
-                        insert(heap, (char)i, count[i], NULL, NULL);
+                {
+                        Character tmp;
+                        tmp.c = (char) i;
+                        insert(heap, tmp, count[i], NULL, NULL);
+                }
 
         Node *root = create_tree(heap);
 
@@ -75,7 +95,7 @@ int main(int argc, char **argv)
         printf("\nstruct codes\n");
         for (int i = 0; i < leaves_count; i++)
         {
-                printf("%c - %s (length - %d)\n", codes[i].ch, codes[i].code, codes[i].length);
+                printf("%c - %s (length - %d)\n", codes[i].ch.c, codes[i].code, codes[i].length);
         }
 
         int bits_in_use = BITS_IN_USE(leaves_count, codes);

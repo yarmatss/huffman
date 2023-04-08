@@ -5,8 +5,8 @@
 
 typedef struct Code
 {
-        char ch;
-        char code[256];
+        Character ch;
+        char code[65536];
         int freq;
         int length;
 } Code;

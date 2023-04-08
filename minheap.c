@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-Node *create_node(char ch, int fr, Node *left, Node *right)
+Node *create_node(Character ch, int fr, Node *left, Node *right)
 {
         Node *new_node = malloc(sizeof(*new_node));
         new_node->ch = ch;
@@ -48,7 +48,7 @@ void swap(Node **elem1, Node **elem2)
         *elem2 = tmp;
 }
 
-minHeap *insert(minHeap *heap, char ch, int freq, Node *left, Node *right)
+minHeap *insert(minHeap *heap, Character ch, int freq, Node *left, Node *right)
 {
         if (heap->capacity == heap->size)
         {
@@ -129,7 +129,10 @@ Node *create_tree(minHeap *heap)
                 Node *b = get_min(heap);
                 delete (heap);
 
-                insert(heap, '\0', a->freq + b->freq, a, b);
+                Character tmp;
+                tmp.c = '\0';
+
+                insert(heap, tmp, a->freq + b->freq, a, b);
         }
         return heap->array[0];
 }
