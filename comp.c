@@ -7,7 +7,6 @@
 
 #define MAX1 256
 #define MAX2 65536
-#define MAX3 4096
 
 int main(int argc, char **argv)
 {
@@ -37,7 +36,7 @@ int main(int argc, char **argv)
                 }
         }
 
-        if( option < 1 || option > 3 )
+        if( option < 1 || option > 2 )
         {
                 fprintf(stderr, "Błędny lub niepodany stopień kompresji!\nUżyj -h dla wyświetlenia menu help\n");
                 exit(1);
@@ -57,14 +56,6 @@ int main(int argc, char **argv)
                 }
                 break;
         case 2:
-                while (fread(&c, sizeof(short), 1, in))
-                {
-                        count[c]++;
-                        if (count[c] == 1)
-                                leaves_count++;
-                }
-                break;
-        case 3:
                 while (fread(&c, sizeof(short), 1, in))
                 {
                         count[c]++;
@@ -104,15 +95,6 @@ int main(int argc, char **argv)
                                 insert(heap, tmp, count[i], NULL, NULL);
                         }
                 break;
-        case 3:
-                for (int i = 0; i < MAX3; i++)
-                        if (count[i] != 0)
-                        {
-                                Character tmp;
-                                tmp.s = (short) i;
-                                insert(heap, tmp, count[i], NULL, NULL);
-                        }
-                break;
         }
 
         Node *root = create_tree(heap);
@@ -136,12 +118,6 @@ int main(int argc, char **argv)
                         printf("%d - %s (length - %d)\n", codes[i].ch.s, codes[i].code, codes[i].length);
                 }
                 break;
-        case 3:
-                for (int i = 0; i < leaves_count; i++)
-                {
-                        printf("%d - %s (length - %d)\n", codes[i].ch.s, codes[i].code, codes[i].length);
-                }
-                break;
         }
 
         int bits_in_use = BITS_IN_USE(leaves_count, codes);
@@ -156,5 +132,4 @@ int main(int argc, char **argv)
         fclose(in);
         fclose(out);
         return 0;
-
 }

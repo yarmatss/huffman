@@ -63,17 +63,6 @@ void print_buf_o2(short *buf, int n, char mask)
     }
 }
 
-void print_buf_o3(short *buf, int n, char mask)
-{
-    for (int i = 0; i < n; i++)
-    {
-        printf("buf[%d]: ", i);
-        for (int j = 15; j >= 0; j--)
-            printf("%d", ((buf[i]) >> j) & mask);
-        printf("\n");
-    }
-}
-
 int BLOCK_COUNT(int block_bits, int bits_in_use)
 {
     int n;
@@ -100,28 +89,17 @@ void zapisz(FILE *in, FILE *out, int option, int bits_in_use, int leaves_count, 
         block_bits = 16;
         block_count = BLOCK_COUNT(block_bits, bits_in_use);
         break;
-    case 3:
-        block_bits = 12;
-        block_count = BLOCK_COUNT(block_bits, bits_in_use);
-        break;
     }
 
-    char *buf_o1 = calloc(block_count, sizeof *buf_o1);
+    char *buf_o1 = calloc(block_count, sizeof(*buf_o1));
     if (buf_o1 == NULL)
     {
         fprintf(stderr, "Nie udało się stworzyć buforu\n");
         exit(1);
     }
 
-    short *buf_o2 = calloc(block_count, sizeof *buf_o2);
+    short *buf_o2 = calloc(block_count, sizeof(*buf_o2));
     if (buf_o2 == NULL)
-    {
-        fprintf(stderr, "Nie udało się stworzyć buforu\n");
-        exit(1);
-    }
-
-    short *buf_o3 = calloc(block_count, sizeof *buf_o3);
-    if (buf_o3 == NULL)
     {
         fprintf(stderr, "Nie udało się stworzyć buforu\n");
         exit(1);
@@ -129,16 +107,17 @@ void zapisz(FILE *in, FILE *out, int option, int bits_in_use, int leaves_count, 
 
     printf("blocks count - %d\n", block_count);
 
-    int c;
     fseek(in, 0L, SEEK_SET);
+    char c1;
+    short c2;
     switch (option)
     {
     case 1:
-        while (fread(&c, sizeof(char), 1, in))
+        while (fread(&c1, sizeof(char), 1, in))
         {
             for (int i = 0; i < leaves_count; i++)
             {
-                if ((char)c == codes[i].ch.c)
+                if ((char)c1 == codes[i].ch.c)
                 {
                     for (int k = 0; k < codes[i].length; k++)
                     {
@@ -170,11 +149,11 @@ void zapisz(FILE *in, FILE *out, int option, int bits_in_use, int leaves_count, 
         break;
 
         case 2:
-        while (fread(&c, sizeof(short), 1, in))
+        while (fread(&c2, sizeof(short), 1, in))
         {
             for (int i = 0; i < leaves_count; i++)
             {
-                if ((short)c == codes[i].ch.s)
+                if ((short)c2 == codes[i].ch.s)
                 {
                     for (int k = 0; k < codes[i].length; k++)
                     {
@@ -205,44 +184,9 @@ void zapisz(FILE *in, FILE *out, int option, int bits_in_use, int leaves_count, 
         fwrite(buf_o2, sizeof(short), block_count, out);
         break;
 
-        case 3:
-        while (fread(&c, sizeof(short), 1, in))
-        {
-            for (int i = 0; i < leaves_count; i++)
-            {
-                if ((short)c == codes[i].ch.s)
-                {
-                    for (int k = 0; k < codes[i].length; k++)
-                    {
-                        if (bit_position == block_bits)
-                        {
-                            buf_index++;
-                            bit_position = 0;
-                        }
-
-                        switch (codes[i].code[k])
-                        {
-                        case '1':
-                            buf_o3[buf_index] |= (0b1 << bit_position);
-                            bit_position++;
-                            break;
-
-                        case '0':
-                            buf_o3[buf_index] &= ~(0b1 << bit_position);
-                            bit_position++;
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-        printf("******** buf bits after ********\n");
-        print_buf_o3(buf_o3, block_count, 0b1);
-        fwrite(buf_o3, sizeof(short), block_count, out);
-        break;
+        
     }
 
     free(buf_o1);
     free(buf_o2);
-    free(buf_o3);
 }
