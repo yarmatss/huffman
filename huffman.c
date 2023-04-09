@@ -218,14 +218,14 @@ void zapisz(FILE *in, FILE *out, FILE *table, int option, int bits_in_use, int l
         break;  
     }
 
-    fprintf( table, "%d\n", block_count * block_bits - bits_in_use );
+    fprintf( table, "%d %d\n", block_count * block_bits - bits_in_use, leaves_count );
 
     for( int i = 0; i < leaves_count; ++i )
     {
         switch( option )
         {  
             case 1:
-                fprintf( table, "%c %s\n", codes[i].ch.c, codes[i].code );
+                fprintf( table, "%d %s\n", codes[i].ch.c, codes[i].code );
                 break;
             case 2:
                 fprintf( table, "%d %s\n", codes[i].ch.s, codes[i].code );

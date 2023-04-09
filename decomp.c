@@ -2,7 +2,6 @@
 
 #include<stdio.h>
 #include<stdlib.h>
-#include<getopt.h>
 #include<string.h>
 
 typedef struct Code
@@ -39,43 +38,24 @@ void zeruj( char *w_arr ) {
 
 int main( int argc , char *argv[] ) {
 
-        //искусственное заполнение codes для test.txt---------------------
-        int leaves_count = 5;
-        Code codes[5];
+        int excess_bits, leaves_count;
+        FILE *kody = fopen( "kody", "r" );
+        fscanf(kody, "%d %d", &excess_bits, &leaves_count);
+        printf( "%d %d\n", excess_bits, leaves_count);
+
+        Code *codes = malloc( leaves_count * sizeof *codes);
 
         for( int i = 0 ; i < leaves_count ; i++ )
                 for( int j = 0 ; j < 256 ; j++ )
                         codes[i].code[j] = '\0';
 
-        codes[0].ch = 'a';
-        codes[0].length = 1;
-        codes[0].code[0] = '0';
-
-        codes[1].ch = 'b';
-        codes[1].length = 2;
-        codes[1].code[0] = '1';
-        codes[1].code[1] = '0'; 
-        
-        codes[2].ch = 'c';
-        codes[2].length = 3;
-        codes[2].code[0] = '1';
-        codes[2].code[1] = '1';
-        codes[2].code[2] = '0';
-        
-        codes[3].ch = '0';
-        codes[3].length = 4;
-        codes[3].code[0] = '1';
-        codes[3].code[1] = '1';
-        codes[3].code[2] = '1';
-        codes[3].code[3] = '0';
-
-        codes[4].ch = 'd';
-        codes[4].length = 4;
-        codes[4].code[0] = '1';
-        codes[4].code[1] = '1';
-        codes[4].code[2] = '1';
-        codes[4].code[3] = '1';
-        //---------------------------------------------------------------
+        for( int i = 0; i < leaves_count; ++i )
+        {
+                int c;
+                fscanf(kody, "%d %256s", &c, codes[i].code);
+                codes[i].ch = (char) c;
+                codes[i].length = strlen(codes[i].code);
+        }
 
         print_codes( codes , leaves_count );
 
@@ -152,8 +132,6 @@ int main( int argc , char *argv[] ) {
         for( int i = 0 ; i < lSize ; i++ ) 
                 printf("arr[%d]: %s\n", i , blocks[i].block); 
 
-
-        int excess_bits = 5; // не используемые
         int bits_in_use = 8 * lSize - excess_bits ;
 
         char w_arr[256]; //work_array 
