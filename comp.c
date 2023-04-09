@@ -44,22 +44,25 @@ int main(int argc, char **argv)
 
         int count[MAX2] = {0};
 
-        int c = 0, leaves_count = 0;
+        int leaves_count = 0;
+        char c1;
+        unsigned short c2;
+
         switch (option)
         {
         case 1:
-                while (fread(&c, sizeof(char), 1, in))
+                while (fread(&c1, sizeof(char), 1, in))
                 {
-                        count[c]++;
-                        if (count[c] == 1)
+                        count[c1]++;
+                        if (count[c1] == 1)
                                 leaves_count++;
                 }
                 break;
         case 2:
-                while (fread(&c, sizeof(short), 1, in))
+                while (fread(&c2, sizeof(short), 1, in))
                 {
-                        count[c]++;
-                        if (count[c] == 1)
+                        count[c2]++;
+                        if (count[c2] == 1)
                                 leaves_count++;
                 }
                 break;
