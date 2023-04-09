@@ -49,10 +49,10 @@ void delete( char* single_str , int excess_bits ) {
 
 int main( int argc , char *argv[] ) {
 
-        int excess_bits, leaves_count;
+        int excess_bits, leaves_count, option;
         FILE *kody = fopen( "kody", "r" );
-        fscanf(kody, "%d %d", &excess_bits, &leaves_count);
-        printf( "%d %d\n", excess_bits, leaves_count);
+        fscanf(kody, "%d %d %d", &excess_bits, &leaves_count, &option);
+        //printf( "%d %d\n", excess_bits, leaves_count);
 
         Code *codes = malloc( leaves_count * sizeof *codes);
 
@@ -68,7 +68,7 @@ int main( int argc , char *argv[] ) {
                 codes[i].length = strlen(codes[i].code);
         }
 
-        print_codes( codes , leaves_count );
+        //print_codes( codes , leaves_count );
 
         FILE *f = argc > 1 ? fopen( argv[1] , "rb") : NULL ;
         FILE *in = argc > 2 ? fopen( argv[2] , "wb") : NULL ;
@@ -91,7 +91,7 @@ int main( int argc , char *argv[] ) {
         long lSize = ftell(f);        // получаем размер в байтах
         rewind(f);                      //возвращаем в начало файла
 
-        printf("Size in bytes - %ld \n", lSize );
+        //printf("Size in bytes - %ld \n", lSize );
         char mask = 0b1;
         char *buffer = (char*) malloc(sizeof(char) * lSize);
 
@@ -107,8 +107,8 @@ int main( int argc , char *argv[] ) {
                 for( int j = 0 ; j < 8 ; j++ ) 
                         blocks[i].block[j] = '\0';
 
-        for( int i = 0 ; i < lSize ; i++ ) 
-                printf("arr[%d]: %s\n", i , blocks[i].block);        
+        //for( int i = 0 ; i < lSize ; i++ ) 
+                //printf("arr[%d]: %s\n", i , blocks[i].block);        
 
 
 
@@ -125,12 +125,12 @@ int main( int argc , char *argv[] ) {
                 exit (3);
                 }
 
-        printf("Soderzimoe faila teper nahoditsa v buffere\n");
+        //printf("Soderzimoe faila teper nahoditsa v buffere\n");
 
         for( int j = 0 ; j < lSize ; j++ ){
-                printf("buffer[%d]: ", j );
+                //printf("buffer[%d]: ", j );
                 for( int i = 7 ; i >= 0 ; i-- ) {
-                        printf("%d", ( (buffer[j]) >> i ) & mask );
+                        //printf("%d", ( (buffer[j]) >> i ) & mask );
                         switch(( (buffer[j]) >> i ) & mask) {
                                 case 0:
                                         strcat( blocks[j].block , "0" );
@@ -140,21 +140,21 @@ int main( int argc , char *argv[] ) {
                                         break;        
                         }        
         }
-                printf("\n");
+                //printf("\n");
         }
         
         reverse( blocks , lSize );
-        printf("Reversed: \n");
-        for( int i = 0 ; i < lSize ; i++ ) 
-                printf("arr[%d]: %s\n", i , blocks[i].block); 
+        //printf("Reversed: \n");
+        //for( int i = 0 ; i < lSize ; i++ ) 
+                //printf("arr[%d]: %s\n", i , blocks[i].block); 
         
         for( int i = 0 ; i < lSize ; i++ )
                 strcat( single_str , blocks[i].block);
-        printf("%s\n", single_str );
+        //printf("%s\n", single_str );
 
 
         delete( single_str , excess_bits );
-        printf("%s\n", single_str );
+        //printf("%s\n", single_str );
         
 
 

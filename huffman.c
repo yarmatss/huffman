@@ -138,7 +138,7 @@ void zapisz(FILE *in, FILE *out, FILE *table, int option, int bits_in_use, int l
         exit(1);
     }
 
-    printf("blocks count - %d\n", block_count);
+    //printf("blocks count - %d\n", block_count);
 
     fseek(in, 0L, SEEK_SET);
     char c1;
@@ -176,8 +176,8 @@ void zapisz(FILE *in, FILE *out, FILE *table, int option, int bits_in_use, int l
                 }
             }
         }
-        printf("******** buf bits after ********\n");
-        print_buf_o1(buf_o1, block_count, 0b1);
+        //printf("******** buf bits after ********\n");
+        //print_buf_o1(buf_o1, block_count, 0b1);
         fwrite(buf_o1, sizeof(char), block_count, out);
         break;
 
@@ -212,13 +212,13 @@ void zapisz(FILE *in, FILE *out, FILE *table, int option, int bits_in_use, int l
                 }
             }
         }
-        printf("******** buf bits after ********\n");
-        print_buf_o2(buf_o2, block_count, 0b1);
+        //printf("******** buf bits after ********\n");
+        //print_buf_o2(buf_o2, block_count, 0b1);
         fwrite(buf_o2, sizeof(short), block_count, out);
         break;  
     }
 
-    fprintf( table, "%d %d\n", block_count * block_bits - bits_in_use, leaves_count );
+    fprintf( table, "%d %d %d\n", block_count * block_bits - bits_in_use, leaves_count, option );
 
     for( int i = 0; i < leaves_count; ++i )
     {

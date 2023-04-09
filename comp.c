@@ -101,15 +101,15 @@ int main(int argc, char **argv)
         }
 
         Node *root = create_tree(heap);
-        printf("-----tree:-----\n");
-        print_tree( root , option );
-        printf("--------");
+        //printf("-----tree:-----\n");
+        //print_tree( root , option );
+        //printf("--------");
 
         Code *codes = calloc(leaves_count, sizeof(Code));
 
         get_code(root, codes, 0);
 
-        printf("struct codes:\n");
+        /*printf("struct codes:\n");
         switch(option)
         {
         case 1:
@@ -124,10 +124,10 @@ int main(int argc, char **argv)
                         printf("%d - %s (length - %d)\n", codes[i].ch.s, codes[i].code, codes[i].length);
                 }
                 break;
-        }
+        }*/
 
         int bits_in_use = BITS_IN_USE(leaves_count, codes);
-        printf("bit in use - %d\n", bits_in_use);
+        //printf("bit in use - %d\n", bits_in_use);
 
         FILE *table = fopen( "kody", "w" );
         zapisz(in, out, table, option, bits_in_use, leaves_count, codes);
