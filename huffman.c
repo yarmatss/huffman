@@ -5,6 +5,39 @@
 char code_g[65536];
 int ic = 0;
 
+void print_tree( Node *root , int option ) {
+        switch(option) {
+        
+        case 1:
+        if( root == NULL ) {
+                printf("----empty----\n");
+                return;
+        }
+        printf("symbol - %c , value - %d\n ", root->ch.c , root->freq);
+        printf("left:\n");
+        print_tree(root->left , option );
+        printf("right:\n");
+        print_tree(root->right , option );
+        printf("done\n");
+
+        break;
+
+        case 2:
+        if( root == NULL ) {
+                printf("----empty----\n");
+                return;
+        }
+        printf("symbol - %d , value - %d\n ", root->ch.s , root->freq);
+        printf("left:\n");
+        print_tree(root->left , option );
+        printf("right:\n");
+        print_tree(root->right , option );
+        printf("done\n");
+
+        break;
+        }
+}
+
 void get_code(Node *root, Code *codes, int cur)
 {
     if (root->left)

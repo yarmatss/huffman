@@ -11,6 +11,7 @@ typedef struct Code
         int length;
 } Code;
 
+void print_tree( Node *root , int option );
 void get_code(Node *root, Code *codes, int cur);
 int BITS_IN_USE(int leaves_count, Code *codes);
 int BLOCK_COUNT( int block_bits , int bits_in_use );

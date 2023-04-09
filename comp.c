@@ -98,6 +98,9 @@ int main(int argc, char **argv)
         }
 
         Node *root = create_tree(heap);
+        printf("-----tree:-----\n");
+        print_tree( root , option );
+        printf("--------");
 
         Code *codes = calloc(leaves_count, sizeof(Code));
 
