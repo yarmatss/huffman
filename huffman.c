@@ -106,7 +106,7 @@ int BLOCK_COUNT(int block_bits, int bits_in_use)
     return n;
 }
 
-void zapisz(FILE *in, FILE *out, int option, int bits_in_use, int leaves_count, Code *codes)
+void zapisz(FILE *in, FILE *out, FILE *table, int option, int bits_in_use, int leaves_count, Code *codes)
 {
     int block_count, block_bits;
     int buf_index = 0;
@@ -215,10 +215,23 @@ void zapisz(FILE *in, FILE *out, int option, int bits_in_use, int leaves_count, 
         printf("******** buf bits after ********\n");
         print_buf_o2(buf_o2, block_count, 0b1);
         fwrite(buf_o2, sizeof(short), block_count, out);
-        break;
-
-        
+        break;  
     }
+
+    fprintf( table, "%d\n", block_count * block_bits - bits_in_use );
+
+    for( int i = 0; i < leaves_count; ++i )
+    {
+        switch( option )
+        {  
+            case 1:
+                fprintf( table, "%c %s\n", codes[i].ch.c, codes[i].code );
+                break;
+            case 2:
+                fprintf( table, "%d %s\n", codes[i].ch.s, codes[i].code );
+                break;
+        }
+    } 
 
     free(buf_o1);
     free(buf_o2);

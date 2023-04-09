@@ -13,7 +13,7 @@ huffman.o: huffman.c
 	cc -c huffman.c
 
 clean:
-	-rm *.o comp *.bin decomp
+	-rm *.o comp *.bin decomp kody
 
 decomp.o: decomp.c
 	cc -c decomp.c

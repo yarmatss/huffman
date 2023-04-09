@@ -129,7 +129,8 @@ int main(int argc, char **argv)
         int bits_in_use = BITS_IN_USE(leaves_count, codes);
         printf("bit in use - %d\n", bits_in_use);
 
-        zapisz(in, out, option, bits_in_use, leaves_count, codes);
+        FILE *table = fopen( "kody", "w" );
+        zapisz(in, out, table, option, bits_in_use, leaves_count, codes);
 
         free(codes);
         free_tree(root);
@@ -137,5 +138,6 @@ int main(int argc, char **argv)
         free_heap(heap);
         fclose(in);
         fclose(out);
+        fclose(table);
         return 0;
 }
