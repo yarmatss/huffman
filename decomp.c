@@ -2,6 +2,7 @@
 
 #include<stdio.h>
 #include<stdlib.h>
+#include<getopt.h>
 #include<string.h>
 
 typedef struct Code
@@ -11,16 +12,19 @@ typedef struct Code
         int length;
 } Code;
 
+
 typedef struct string {
         char *block;
-} string; 
+} block_str; 
+
 
 void print_codes( Code *codes , int leaves_count ) {
         for( int i = 0 ; i < leaves_count ; i++ ) 
                 printf("'%c' - %s (length = %d)\n", codes[i].ch , codes[i].code , codes[i].length );
 }
 
-void reverse( string *blocks , int lSize ) {
+
+void reverse( block_str *blocks , int lSize ) {
         char tmp;
         for( int i = 0 ; i < lSize ; i++ ) {
                 for(int j = 0 ; j < 8 / 2 ; j++ ){
@@ -31,9 +35,16 @@ void reverse( string *blocks , int lSize ) {
         }
 }
 
+
 void zeruj( char *w_arr ) {
         for( int i = 0 ; i < 256 ; i++ )
                 w_arr[i] = '\0';
+}
+
+void delete( char* single_str , int excess_bits ) {
+        int len = strlen(single_str);
+        for( int i = len - excess_bits ; i < len ; i++ )
+                single_str[i] = '\0';
 }
 
 int main( int argc , char *argv[] ) {
@@ -63,38 +74,44 @@ int main( int argc , char *argv[] ) {
         FILE *in = argc > 2 ? fopen( argv[2] , "wb") : NULL ;
        
                 if( f == NULL )
-        {
+                {
                 fprintf(stderr,"Empty file\n");
                 exit(1);
-        }
+                }
 
                 if( in == NULL )
-        {
+                {
                 fprintf(stderr,"Empty file\n");
                 exit(1);
-        }
+                }
 
         int block_bits = 8;
-
 
         fseek( f , 0 , SEEK_END);      // устанавливаем позицию в конец файла
         long lSize = ftell(f);        // получаем размер в байтах
         rewind(f);                      //возвращаем в начало файла
 
-        //printf("Size in bytes - %ld \n", lSize );
+        printf("Size in bytes - %ld \n", lSize );
         char mask = 0b1;
         char *buffer = (char*) malloc(sizeof(char) * lSize);
 
-        string *blocks = malloc( sizeof(string) * lSize ); 
+        int bits_at_all = lSize * block_bits ;  // для единой строки 
+        char *single_str = malloc( sizeof(char) * bits_at_all );
+
+        block_str *blocks = malloc( sizeof(*blocks) * lSize ); 
+
                 for( int i = 0 ; i < lSize ; i++ )
-                        blocks[i].block = malloc(sizeof(char) * 8 );
+                blocks[i].block = malloc(sizeof(char) * 8 );    
+
         for( int i = 0 ; i < lSize ; i++ )
                 for( int j = 0 ; j < 8 ; j++ ) 
                         blocks[i].block[j] = '\0';
 
         for( int i = 0 ; i < lSize ; i++ ) 
                 printf("arr[%d]: %s\n", i , blocks[i].block);        
-                                  
+
+
+
          if( buffer == NULL ) {
                 fprintf(stderr, "ERROR WITH MEMORY\n");
                 exit(1);
@@ -127,70 +144,41 @@ int main( int argc , char *argv[] ) {
         }
         
         reverse( blocks , lSize );
-        printf("Perevernutye: \n");
-           
+        printf("Reversed: \n");
         for( int i = 0 ; i < lSize ; i++ ) 
                 printf("arr[%d]: %s\n", i , blocks[i].block); 
+        
+        for( int i = 0 ; i < lSize ; i++ )
+                strcat( single_str , blocks[i].block);
+        printf("%s\n", single_str );
 
-        int bits_in_use = 8 * lSize - excess_bits ;
 
+        delete( single_str , excess_bits );
+        printf("%s\n", single_str );
+        
+
+
+
+        
         char w_arr[256]; //work_array 
-        for( int i = 0 ; i < 256 ; i++ )
-                w_arr[i] = '\0';       
+                for( int i = 0 ; i < 256 ; i++ )
+                        w_arr[i] = '\0'; 
 
-
-
-        int code_i = 0;
-        int code_i_w = 0;
+        //int n = lSize * block_bits - excess_bits ;
+        int n = strlen(single_str);
         char c;
 
-
-        for( int i = 0 ; i < lSize ;  ) {
-                if( code_i == 8 ) {
-                        i++;
-                        code_i = 0;
-                }        
-                w_arr[code_i_w] = blocks[i].block[code_i];
-                code_i_w++;
-                code_i++;
-                        for( int j = 0 ; j < leaves_count ; j++ )
-                                if( strcmp( w_arr , codes[j].code ) == 0 ) {
-                                        c = codes[j].ch;
-                                        fwrite( &c , sizeof(char) , 1 , in );
-                                        zeruj(w_arr);
-                                        code_i_w = 0;
-                                }
-                
-        }
-
-
-
-
-
-
-
-
-
-/*
-
-        int n = 1; //сколько записываем 
-        char c;
-        for( int i = 0 ; i < lSize ; i++ ) {
-                strncat( w_arr , n , blocks[i].block );   
-                for( int j = 0 ; j < leaves_count ; j++ ) {
-
-                        if( strcmp(codes[j].code , w_arr) == 0 ) {
+        int wai = 0; //work_array_index 
+        for( int i = 0 ; i < n ; i++ ) {
+                w_arr[wai++] = single_str[i];
+                for( int j = 0 ; j < leaves_count ; j++ ) 
+                        if( strcmp( w_arr , codes[j].code ) == 0 ) {
                                 c = codes[j].ch;
                                 fwrite( &c , sizeof(char) , 1 , in );
-                        }        
-                        zeruj( w_arr );
-                        n++;
-                }
+                                zeruj(w_arr);
+                                wai = 0;            
+                        } 
         }
-
-*/        
-
-
 
         fclose (f);
         free (buffer);
