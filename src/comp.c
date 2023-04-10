@@ -10,6 +10,25 @@
 
 int main(int argc, char **argv)
 {
+        if(strcmp(argv[1], "-h") == 0)
+        {
+                printf("Usage:\ncomp <nazwa pliku do kompresji> <nazwa pliku skompresowanego> [-o stopień kompresji]\n");
+                exit(1);
+        }
+        FILE *in = argc > 1 ? fopen(argv[1], "rb") : NULL;
+        FILE *out = argc > 2 ? fopen(argv[2], "wb") : NULL;
+        if (in == NULL)
+        {
+                fprintf(stderr, "Nie udało się odczytać pliku \"%s\"\n", argv[1]);
+                exit(1);
+        }
+
+        if (out == NULL)
+        {
+                fprintf(stderr, "Nie udało sie stworzyć pliku \"%s\"\n", argv[2]);
+                exit(1);
+        }
+
         int option = 0, opt;
         while ((opt = getopt(argc, argv, "o:h")) != -1)
         {
@@ -28,20 +47,6 @@ int main(int argc, char **argv)
         if (option < 1 || option > 2)
         {
                 fprintf(stderr, "Błędny lub niepodany stopień kompresji!\nUżyj -h dla wyświetlenia menu help\n");
-                exit(1);
-        }
-
-        FILE *in = argc > 1 ? fopen(argv[1], "rb") : NULL;
-        FILE *out = argc > 2 ? fopen(argv[2], "wb") : NULL;
-        if (in == NULL)
-        {
-                fprintf(stderr, "Nie udało się odczytać pliku \"%s\"\n", argv[1]);
-                exit(1);
-        }
-
-        if (out == NULL)
-        {
-                fprintf(stderr, "Nie udało sie stworzyć pliku \"%s\"\n", argv[2]);
                 exit(1);
         }
 
