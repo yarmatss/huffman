@@ -2,7 +2,8 @@
 #define MINHEAP_H
 #include <stdio.h>
 
-typedef union Character {
+typedef union Character
+{
         short s;
         char c;
 } Character;

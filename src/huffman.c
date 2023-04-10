@@ -5,39 +5,6 @@
 char code_g[65536];
 int ic = 0;
 
-void print_tree( Node *root , int option ) {
-        switch(option) {
-        
-        case 1:
-        if( root == NULL ) {
-                printf("----empty----\n");
-                return;
-        }
-        printf("symbol - %c , value - %d\n ", root->ch.c , root->freq);
-        printf("left:\n");
-        print_tree(root->left , option );
-        printf("right:\n");
-        print_tree(root->right , option );
-        printf("done\n");
-
-        break;
-
-        case 2:
-        if( root == NULL ) {
-                printf("----empty----\n");
-                return;
-        }
-        printf("symbol - %d , value - %d\n ", root->ch.s , root->freq);
-        printf("left:\n");
-        print_tree(root->left , option );
-        printf("right:\n");
-        print_tree(root->right , option );
-        printf("done\n");
-
-        break;
-        }
-}
-
 void get_code(Node *root, Code *codes, int cur)
 {
     if (root->left)
@@ -72,28 +39,6 @@ int BITS_IN_USE(int leaves_count, Code *codes)
     for (int i = 0; i < leaves_count; i++)
         n += (codes[i].freq) * codes[i].length;
     return n;
-}
-
-void print_buf_o1(char *buf, int n, char mask)
-{
-    for (int i = 0; i < n; i++)
-    {
-        printf("buf[%d]: ", i);
-        for (int j = 7; j >= 0; j--)
-            printf("%d", ((buf[i]) >> j) & mask);
-        printf("\n");
-    }
-}
-
-void print_buf_o2(short *buf, int n, char mask)
-{
-    for (int i = 0; i < n; i++)
-    {
-        printf("buf[%d]: ", i);
-        for (int j = 15; j >= 0; j--)
-            printf("%d", ((buf[i]) >> j) & mask);
-        printf("\n");
-    }
 }
 
 int BLOCK_COUNT(int block_bits, int bits_in_use)
@@ -138,8 +83,6 @@ void zapisz(FILE *in, FILE *out, FILE *table, int option, int bits_in_use, int l
         exit(1);
     }
 
-    //printf("blocks count - %d\n", block_count);
-
     fseek(in, 0L, SEEK_SET);
     char c1;
     short c2;
@@ -176,12 +119,10 @@ void zapisz(FILE *in, FILE *out, FILE *table, int option, int bits_in_use, int l
                 }
             }
         }
-        //printf("******** buf bits after ********\n");
-        //print_buf_o1(buf_o1, block_count, 0b1);
         fwrite(buf_o1, sizeof(char), block_count, out);
         break;
 
-        case 2:
+    case 2:
         while (fread(&c2, sizeof(short), 1, in))
         {
             for (int i = 0; i < leaves_count; i++)
@@ -212,26 +153,24 @@ void zapisz(FILE *in, FILE *out, FILE *table, int option, int bits_in_use, int l
                 }
             }
         }
-        //printf("******** buf bits after ********\n");
-        //print_buf_o2(buf_o2, block_count, 0b1);
         fwrite(buf_o2, sizeof(short), block_count, out);
-        break;  
+        break;
     }
 
-    fprintf( table, "%d %d %d\n", block_count * block_bits - bits_in_use, leaves_count, option );
+    fprintf(table, "%d %d %d\n", block_count * block_bits - bits_in_use, leaves_count, option);
 
-    for( int i = 0; i < leaves_count; ++i )
+    for (int i = 0; i < leaves_count; ++i)
     {
-        switch( option )
-        {  
-            case 1:
-                fprintf( table, "%d %s\n", codes[i].ch.c, codes[i].code );
-                break;
-            case 2:
-                fprintf( table, "%d %s\n", codes[i].ch.s, codes[i].code );
-                break;
+        switch (option)
+        {
+        case 1:
+            fprintf(table, "%d %s\n", codes[i].ch.c, codes[i].code);
+            break;
+        case 2:
+            fprintf(table, "%d %s\n", codes[i].ch.s, codes[i].code);
+            break;
         }
-    } 
+    }
 
     free(buf_o1);
     free(buf_o2);

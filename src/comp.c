@@ -10,6 +10,27 @@
 
 int main(int argc, char **argv)
 {
+        int option = 0, opt;
+        while ((opt = getopt(argc, argv, "o:h")) != -1)
+        {
+                switch (opt)
+                {
+                case 'h':
+                        printf("Usage:\ncomp <nazwa pliku do kompresji> <nazwa pliku skompresowanego> [-o stopień kompresji]\n");
+                        exit(1);
+                        break;
+                case 'o':
+                        option = atoi(optarg);
+                        break;
+                }
+        }
+
+        if (option < 1 || option > 2)
+        {
+                fprintf(stderr, "Błędny lub niepodany stopień kompresji!\nUżyj -h dla wyświetlenia menu help\n");
+                exit(1);
+        }
+
         FILE *in = argc > 1 ? fopen(argv[1], "rb") : NULL;
         FILE *out = argc > 2 ? fopen(argv[2], "wb") : NULL;
         if (in == NULL)
@@ -21,24 +42,6 @@ int main(int argc, char **argv)
         if (out == NULL)
         {
                 fprintf(stderr, "Nie udało sie stworzyć pliku \"%s\"\n", argv[2]);
-                exit(1);
-        }
-
-        int option = 0, opt;
-
-        while( (opt = getopt( argc, argv, "o:")) != -1)
-        {
-                switch(opt)
-                {
-                        case 'o':
-                                option = atoi(optarg);
-                                break;
-                }
-        }
-
-        if( option < 1 || option > 2 )
-        {
-                fprintf(stderr, "Błędny lub niepodany stopień kompresji!\nUżyj -h dla wyświetlenia menu help\n");
                 exit(1);
         }
 
@@ -77,15 +80,20 @@ int main(int argc, char **argv)
         }
 
         minHeap *heap = create_min_heap(2 * leaves_count - 1);
+        if (!heap)
+        {
+                fprintf(stderr, "Nie udało się stworzyć sterty\n");
+                exit(1);
+        }
 
-        switch(option)
+        switch (option)
         {
         case 1:
                 for (int i = 0; i < MAX1; i++)
                         if (count[i] != 0)
                         {
                                 Character tmp;
-                                tmp.c = (char) i;
+                                tmp.c = (char)i;
                                 insert(heap, tmp, count[i], NULL, NULL);
                         }
                 break;
@@ -94,42 +102,36 @@ int main(int argc, char **argv)
                         if (count[i] != 0)
                         {
                                 Character tmp;
-                                tmp.s = (short) i;
+                                tmp.s = (short)i;
                                 insert(heap, tmp, count[i], NULL, NULL);
                         }
                 break;
         }
 
         Node *root = create_tree(heap);
-        //printf("-----tree:-----\n");
-        //print_tree( root , option );
-        //printf("--------");
-
+        if (!root)
+        {
+                fprintf(stderr, "Nie udało się stworzyć drzewo\n");
+                exit(1);
+        }
         Code *codes = calloc(leaves_count, sizeof(Code));
+        if (!codes)
+        {
+                fprintf(stderr, "Nie udało się stworzyć tablicy kodów\n");
+                exit(1);
+        }
 
         get_code(root, codes, 0);
 
-        /*printf("struct codes:\n");
-        switch(option)
-        {
-        case 1:
-                for (int i = 0; i < leaves_count; i++)
-                {
-                        printf("%c - %s (length - %d)\n", codes[i].ch.c, codes[i].code, codes[i].length);
-                }
-                break;
-        case 2:
-                for (int i = 0; i < leaves_count; i++)
-                {
-                        printf("%d - %s (length - %d)\n", codes[i].ch.s, codes[i].code, codes[i].length);
-                }
-                break;
-        }*/
-
         int bits_in_use = BITS_IN_USE(leaves_count, codes);
-        //printf("bit in use - %d\n", bits_in_use);
 
-        FILE *table = fopen( "kody", "w" );
+        FILE *table = fopen("kody", "w");
+        if (table == NULL)
+        {
+                fprintf(stderr, "Nie udało sie stworzyć pliku \"%s\"\n", argv[2]);
+                exit(1);
+        }
+
         zapisz(in, out, table, option, bits_in_use, leaves_count, codes);
 
         free(codes);

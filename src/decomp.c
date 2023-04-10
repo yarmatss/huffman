@@ -1,5 +1,3 @@
-// известен алфавит + колво неиспольщуемых битов
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <getopt.h>
@@ -21,32 +19,10 @@ typedef struct Code
         int length;
 } Code;
 
-/*typedef struct Code
-{
-        char ch;
-        char code[256];
-        int length;
-} Code;*/
-
 typedef struct string
 {
         char *block;
 } block_str;
-
-void print_codes(Code *codes, int leaves_count, int option)
-{
-        switch (option)
-        {
-        case 1:
-                for (int i = 0; i < leaves_count; i++)
-                        printf("'%c' - %s (length = %d)\n", codes[i].ch.c, codes[i].code, codes[i].length);
-                break;
-        case 2:
-                for (int i = 0; i < leaves_count; i++)
-                        printf("'%d' - %s (length = %d)\n", codes[i].ch.s, codes[i].code, codes[i].length);
-                break;
-        }
-}
 
 void reverse(block_str *blocks, int lSize, int block_bits)
 {
@@ -77,32 +53,35 @@ void zeruj(char *w_arr, int option)
         }
 }
 
-/*void delete( char* single_str , int excess_bits ) {
-        int len = strlen(single_str);
-        for( int i = len - excess_bits ; i < len ; i++ )
-                single_str[i] = '\0';
-}*/
-
-void free_blocks( block_str *blocks, int n) 
+void free_blocks(block_str *blocks, int n)
 {
-        for( int i = 0; i < n; ++i)
+        for (int i = 0; i < n; ++i)
                 free(blocks[i].block);
         free(blocks);
 }
 
-/*void free_codes( Code *codes, int leaves_count )
-{
-        for( int i = 0; i < leaves_count; ++i)
-                free(codes[i]);
-}*/
-
 int main(int argc, char *argv[])
 {
+        int opt;
+        while ((opt = getopt(argc, argv, ":h")) != -1)
+        {
+                switch (opt)
+                {
+                case 'h':
+                        printf("Usage:\ndecomp <nazwa pliku skompresowanego> <nazwa pliku po dekomresji>\n");
+                        exit(1);
+                        break;
+                }
+        }
 
         int excess_bits = 0, leaves_count = 0, option = 0;
         FILE *kody = fopen("kody", "r");
+        if(!kody)
+        {
+                fprintf(stderr, "Nie udało się odczytać pliku z kodami\nUżyj -h dla wyświetlenia menu help\n");
+                exit(1);
+        }
         fscanf(kody, "%d %d %d", &excess_bits, &leaves_count, &option);
-        // printf( "%d %d\n", excess_bits, leaves_count);
 
         Code *codes = malloc(leaves_count * sizeof(*codes));
 
@@ -143,20 +122,18 @@ int main(int argc, char *argv[])
                 break;
         }
 
-        print_codes(codes, leaves_count, option);
-
         FILE *f = argc > 1 ? fopen(argv[1], "rb") : NULL;
         FILE *in = argc > 2 ? fopen(argv[2], "wb") : NULL;
 
         if (f == NULL)
         {
-                fprintf(stderr, "Empty file\n");
+                fprintf(stderr, "Nie udało się odczytać pliku skompresowanego\nUżyj -h dla wyświetlenia menu help\n");
                 exit(1);
         }
 
         if (in == NULL)
         {
-                fprintf(stderr, "Empty file\n");
+                fprintf(stderr, "Nie udało się stworzyć pliku do dekompresji\nUżyj -h dla wyświetlenia menu help\n");
                 exit(1);
         }
 
@@ -175,9 +152,8 @@ int main(int argc, char *argv[])
         fseek(f, 0, SEEK_END); // устанавливаем позицию в конец файла
         long lSize = 0;
         lSize = ftell(f); // получаем размер в байтах
-        rewind(f);             // возвращаем в начало файла
+        rewind(f);        // возвращаем в начало файла
 
-        // printf("Size in bytes - %ld \n", lSize );
         char mask = 0b1;
         short mask_s = 0b1;
         int lSize_s = (lSize + 1) / 2;
@@ -186,8 +162,7 @@ int main(int argc, char *argv[])
         short *buffer_s = (short *)malloc(sizeof(short) * lSize_s);
 
         int bits_at_all = lSize * block_bits; // для единой строки
-        //char *single_str = malloc(sizeof(char) * (bits_at_all + 1));
-        char *single_str = calloc( bits_at_all + 1, sizeof( char ));
+        char *single_str = calloc(bits_at_all + 1, sizeof(char));
         if (!single_str)
         {
                 fprintf(stderr, "Kuarro\n");
@@ -210,20 +185,13 @@ int main(int argc, char *argv[])
         {
         case 1:
                 for (int i = 0; i < lSize; i++)
-                        blocks[i].block = /* malloc(sizeof(char) * 8 ) */ calloc(block_bits + 1, sizeof(char)); // op
+                        blocks[i].block = calloc(block_bits + 1, sizeof(char));
                 break;
         case 2:
                 for (int i = 0; i < lSize_s; i++)
-                        blocks[i].block = /* malloc(sizeof(char) * 8 ) */ calloc(block_bits + 1, sizeof(char)); // op
+                        blocks[i].block = calloc(block_bits + 1, sizeof(char));
                 break;
         }
-
-        /*for( int i = 0 ; i < lSize ; i++ )
-                for( int j = 0 ; j < 8 ; j++ )
-                        blocks[i].block[j] = '\0';*/
-
-        // for( int i = 0 ; i < lSize ; i++ )
-        // printf("arr[%d]: %s\n", i , blocks[i].block);
 
         if (buffer == NULL)
         {
@@ -236,28 +204,19 @@ int main(int argc, char *argv[])
         {
         case 1:
                 result = fread(buffer, sizeof(char), lSize, f); // считываем файл в буфер
-                                                                /*  if (result != lSize) {
-                                                                          fprintf(stderr,"Error with memory");
-                                                                  exit (3);
-                                                                  } */
                 break;
         case 2:
                 result = fread(buffer_s, sizeof(short), lSize_s, f); // считываем файл в буфер
                 break;
         }
 
-        // printf("Soderzimoe faila teper nahoditsa v buffere\n");
-
         switch (option)
         {
         case 1:
                 for (int j = 0; j < lSize; j++)
                 {
-                        // printf("buffer[%d]: ", j );
                         for (int i = block_bits - 1; i >= 0; i--)
                         {
-                                // printf("%d", ( (buffer[j]) >> i ) & mask );
-
                                 switch (((buffer[j]) >> i) & mask)
                                 {
                                 case 0:
@@ -266,36 +225,27 @@ int main(int argc, char *argv[])
                                         break;
                                 case 1:
                                         strcat(blocks[j].block, "1");
-                                        // printf("%s\n", blocks[j].block);
                                         break;
                                 }
                         }
-                        // printf("\n");
-                        // printf("\n");
                 }
                 break;
 
         case 2:
                 for (int j = 0; j < lSize_s; j++)
                 {
-                        // printf("buffer[%d]: ", j );
                         for (int i = block_bits - 1; i >= 0; i--)
                         {
-                                // printf("%d", ( (buffer[j]) >> i ) & mask );
-                                // printf("block[%d]: " , j );
                                 switch (((buffer_s[j]) >> i) & mask_s)
                                 {
                                 case 0:
                                         strcat(blocks[j].block, "0");
-                                        // printf("%s\n", blocks[j].block);
                                         break;
                                 case 1:
                                         strcat(blocks[j].block, "1");
-                                        // printf("%s\n", blocks[j].block);
                                         break;
                                 }
                         }
-                        // printf("\n");
                 }
                 break;
         }
@@ -311,10 +261,6 @@ int main(int argc, char *argv[])
                 break;
         }
 
-        // printf("Reversed: \n");
-        // for( int i = 0 ; i < lSize ; i++ )
-        // printf("arr[%d]: %s\n", i , blocks[i].block);
-
         switch (option)
         {
         case 1:
@@ -327,14 +273,10 @@ int main(int argc, char *argv[])
                         strcat(single_str, blocks[i].block);
                 break;
         }
-        // printf("%s\n", single_str );
 
-        // delete( single_str , excess_bits );
         single_str[strlen(single_str) - excess_bits] = '\0';
 
-        printf("%s\n", single_str);
-
-        char w_arr[65536]; // work_array
+        char w_arr[65536];
         switch (option)
         {
         case 1:
@@ -347,12 +289,11 @@ int main(int argc, char *argv[])
                         w_arr[i] = '\0';
         }
 
-        // int n = lSize * block_bits - excess_bits ;
-        int n = strlen(single_str); // в делит бахнуть
+        int n = strlen(single_str);
 
         char c;
         short s;
-        int wai = 0; // work_array_index
+        int wai = 0;
         switch (option)
         {
         case 1:
@@ -384,7 +325,6 @@ int main(int argc, char *argv[])
                                 }
                 }
         }
-        
 
         switch (option)
         {
@@ -395,7 +335,7 @@ int main(int argc, char *argv[])
                 free_blocks(blocks, lSize_s);
                 break;
         }
-        //free_codes(codes, leaves_count);
+
         free(codes);
         free(single_str);
         free(buffer_s);

@@ -1,27 +1,24 @@
 all: comp decomp
 
 comp: comp.o minheap.o huffman.o
-	cc -o comp comp.o minheap.o huffman.o
+	cc -o bin/comp comp.o minheap.o huffman.o
 
-comp.o: comp.c
-	cc -c comp.c
+decomp: src/decomp.o
+	cc -o bin/decomp src/decomp.o
 
-minheap.o: minheap.c
-	cc -c minheap.c
+comp.o: src/comp.c
+	cc -c src/comp.c
 
-huffman.o: huffman.c
-	cc -c huffman.c
+decomp.o: src/decomp.c
+	cc -c src/decomp.c
+
+minheap.o: src/minheap.c
+	cc -c src/minheap.c
+
+huffman.o: src/huffman.c
+	cc -c src/huffman.c
 
 clean:
-	-rm *.o comp *.bin decomp kody
+	-rm *.o *.txt *.bin src/decomp.o kody
 
-decomp.o: decomp.c
-	cc -c decomp.c
-
-decomp: decomp.o
-	cc -o decomp decomp.o
-
-valgrind:
-	valgrind --show-leak-kinds=all --leak-check=full -s ./comp test.txt out.bin -o1
-
-.PHONY: clean valgrind
+.PHONY: clean
