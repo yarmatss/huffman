@@ -34,10 +34,18 @@ typedef struct string {
 } block_str; 
 
 
-/*void print_codes( Code *codes , int leaves_count ) {
+void print_codes( Code *codes , int leaves_count , int option ) {
+        switch(option) {
+        case 1:
         for( int i = 0 ; i < leaves_count ; i++ ) 
-                printf("'%c' - %s (length = %d)\n", codes[i].ch , codes[i].code , codes[i].length );
-}*/
+                printf("'%c' - %s (length = %d)\n", codes[i].ch.c , codes[i].code , codes[i].length );
+                break;
+        case 2:
+        for( int i = 0 ; i < leaves_count ; i++ ) 
+                printf("'%c' - %s (length = %d)\n", codes[i].ch.s , codes[i].code , codes[i].length );
+                break;
+        }
+}
 
 
 void reverse( block_str *blocks , int lSize , int block_bits ) {
@@ -78,7 +86,7 @@ int main( int argc , char *argv[] ) {
         fscanf(kody, "%d %d %d", &excess_bits, &leaves_count, &option);
         //printf( "%d %d\n", excess_bits, leaves_count);
 
-        Code *codes = malloc( leaves_count * sizeof *codes);
+        Code *codes = malloc( leaves_count * sizeof(*codes));
 
         switch(option) {
                 case 1:
@@ -115,7 +123,7 @@ int main( int argc , char *argv[] ) {
                 break;
         }
 
-        //print_codes( codes , leaves_count );
+        print_codes( codes , leaves_count , option );
 
         FILE *f = argc > 1 ? fopen( argv[1] , "rb") : NULL ;
         FILE *in = argc > 2 ? fopen( argv[2] , "wb") : NULL ;
@@ -160,7 +168,7 @@ int main( int argc , char *argv[] ) {
         block_str *blocks = malloc( sizeof(*blocks) * lSize ); 
 
                 for( int i = 0 ; i < lSize ; i++ )
-                blocks[i].block = /*malloc(sizeof(char) * 8 )*/ calloc( block_bits , sizeof(char) );    //op
+                blocks[i].block = /* malloc(sizeof(char) * 8 ) */ calloc( block_bits , sizeof(char) );    //op
 
         /*for( int i = 0 ; i < lSize ; i++ )
                 for( int j = 0 ; j < 8 ; j++ ) 
@@ -179,18 +187,14 @@ int main( int argc , char *argv[] ) {
         size_t result;   
         switch( option ) {
                 case 1:     
-                        result = fread(buffer, 1, lSize, f );       // считываем файл в буфер
-                        if (result != lSize) {
+                        result = fread(buffer, sizeof(char) , lSize, f );       // считываем файл в буфер
+                      /*  if (result != lSize) {
                                 fprintf(stderr,"Error with memory");
                         exit (3);
-                        }
+                        } */
                         break;
                 case 2:
-                        result = fread(buffer_s, 1, lSize, f );       // считываем файл в буфер
-                        if (result != lSize) {
-                                fprintf(stderr,"Error with memory");
-                        exit (3);
-                        }
+                        result = fread(buffer_s, sizeof(short) , lSize / 2 + 1 , f );       // считываем файл в буфер
                         break;           
         } 
                 
@@ -217,7 +221,7 @@ int main( int argc , char *argv[] ) {
                 break;
 
                 case 2:
-        for( int j = 0 ; j < lSize ; j++ ){
+        for( int j = 0 ; j < lSize / 2 ; j++ ){
                 //printf("buffer[%d]: ", j );
                 for( int i = block_bits-1 ; i >= 0 ; i-- ) {
                         //printf("%d", ( (buffer[j]) >> i ) & mask );
@@ -297,6 +301,7 @@ int main( int argc , char *argv[] ) {
                         }
 
         }
+
 
         fclose (f);
         free (buffer);
