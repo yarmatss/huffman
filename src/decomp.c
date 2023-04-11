@@ -204,9 +204,19 @@ int main(int argc, char *argv[])
         {
         case 1:
                 result = fread(buffer, sizeof(char), lSize, f); // считываем файл в буфер
+                if(result != lSize)
+                {
+                        fprintf(stderr, "Błąd w odczytaniu pliku\n");
+                        exit(1);
+                }
                 break;
         case 2:
                 result = fread(buffer_s, sizeof(short), lSize_s, f); // считываем файл в буфер
+                if(result != lSize_s)
+                {
+                        fprintf(stderr, "Błąd w odczytaniu pliku\n");
+                        exit(1);
+                }
                 break;
         }
 
