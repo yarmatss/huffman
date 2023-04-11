@@ -84,7 +84,7 @@ void zapisz(FILE *in, FILE *out, FILE *table, int option, int bits_in_use, int l
     }
 
     fseek(in, 0L, SEEK_SET);
-    char c1;
+    int c1;
     short c2;
     switch (option)
     {
