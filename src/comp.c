@@ -29,7 +29,7 @@ int main(int argc, char **argv)
                 exit(1);
         }
 
-        int option = 0, opt;
+        int option = 0, opt = 0;
         while ((opt = getopt(argc, argv, "o:h")) != -1)
         {
                 switch (opt)
@@ -53,8 +53,8 @@ int main(int argc, char **argv)
         int count[MAX2] = {0};
 
         int leaves_count = 0;
-        char c1;
-        unsigned short c2;
+        int c1 = 0;
+        unsigned short c2 = 0;
 
         switch (option)
         {
